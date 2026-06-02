@@ -190,17 +190,12 @@ Demo video: [Add your YouTube link here]
 
 This repository is a documentation and evidence repository for a Microsoft Power Platform / Copilot Studio solution.
 
-Suggested folder structure:
-
-```text
+Current repository structure:
 architecture/
-screenshots/
+demo/
 flows/
 prompts/
-adaptive-cards/
-dataverse-schema/
-demo/
-```
+screenshots/
 
 The repository contains architecture notes, implementation summaries, sanitised prompts, flow descriptions, screenshots and demo materials rather than a traditional code-first application.
 
