@@ -285,5 +285,5 @@ All screenshots, prompts and documentation should be treated as sanitised demo m
 
 Created by Leila Marchant as a Microsoft Agent Academy Hackathon Operative track submission.
 
-LinkedIn: www.linkedin.com/in/leilamarchant
-Demo video: (https://youtu.be/Tzn6pMMoEAw)
+LinkedIn: https://www.linkedin.com/in/leilamarchant  
+Demo video: https://youtu.be/Tzn6pMMoEAw
