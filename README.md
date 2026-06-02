@@ -8,6 +8,16 @@ This project was created as an entry for the Microsoft Agent Academy Hackathon â
 
 ---
 
+## Quick links
+
+* Demo video: https://youtu.be/Tzn6pMMoEAw
+* Architecture notes: ./architecture/
+* Demo walkthrough: ./demo/
+* Flow summaries: ./flows/
+* Prompt examples: ./prompts/
+* Screenshots and evidence: ./screenshots/
+
+
 ## Problem
 
 Engagement managers and delivery leads at Microsoft partners or Power Platform consultancies often receive client documents, statements of work, requirements notes or service requests in a fragmented way.
