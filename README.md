@@ -182,7 +182,7 @@ The demo shows the following journey:
 10. Post a Teams notification when human review is required.
 11. Show Automation Logs and safe failure handling.
 
-Demo video: [Add your YouTube link here]
+Demo video: https://youtu.be/Tzn6pMMoEAw
 
 ---
 
