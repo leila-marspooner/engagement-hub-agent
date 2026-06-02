@@ -201,6 +201,7 @@ Demo video: https://youtu.be/Tzn6pMMoEAw
 This repository is a documentation and evidence repository for a Microsoft Power Platform / Copilot Studio solution.
 
 Current repository structure:
+
 architecture/
 demo/
 flows/
