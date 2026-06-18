@@ -1,301 +1,247 @@
-# Engagement Hub Agent
-
-Engagement Hub is a multi-agent Microsoft Copilot Studio and Power Platform workflow that turns a client submission into a governed intake and delivery-preparation process.
-
-It analyses submitted client documents, creates structured Dataverse records, surfaces risk flags and human-review requirements, prevents duplicate Engagement Requests, prepares a delivery discovery brief, generates a Word handoff document, posts Teams notifications for human review, and logs key actions for auditability.
-
-This project was created as an entry for the Microsoft Agent Academy Hackathon — Operative track.
-
+<!-- Optional banner: add a wide hero image to screenshots/ and uncomment -->
+<!-- ![Engagement Hub](screenshots/banner.png) -->
+ 
+# Engagement Hub — Client Project Intake & Delivery Prep Agent
+ 
+> ### 🥈 2nd Place — Microsoft Agent Academy Live Hackathon · Operative Track
+ 
+A multi-agent Microsoft **Copilot Studio** and **Power Platform** system that turns an unstructured client submission into a governed Engagement Request, AI-analysed risk assessment, delivery discovery brief and Word handoff document — with human review, Teams notifications and full audit logging built in.
+ 
+[![Copilot Studio](https://img.shields.io/badge/Copilot%20Studio-Multi--Agent-0F7C8A?style=flat-square)](https://learn.microsoft.com/en-us/microsoft-copilot-studio/)
+[![Power Automate](https://img.shields.io/badge/Power%20Automate-8%2B%20Flows-0066FF?style=flat-square)](https://powerautomate.microsoft.com/)
+[![Dataverse](https://img.shields.io/badge/Dataverse-System%20of%20Record-742774?style=flat-square)](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/)
+[![Teams](https://img.shields.io/badge/Microsoft%20Teams-Adaptive%20Cards-464EB8?style=flat-square)](https://adaptivecards.io/)
+[![Case Study](https://img.shields.io/badge/Full%20Case%20Study-leilamarchant.co.uk-16202C?style=flat-square)](https://leilamarchant.co.uk/case-study-engagement-hub/)
+ 
 ---
-
+ 
+> **👋 Reviewing this repo?** The fastest way to understand the project is the **[3-minute demo video](https://youtu.be/Tzn6pMMoEAw)**, then the **[full case study](https://leilamarchant.co.uk/case-study-engagement-hub/)** for architecture detail and screenshots.
+ 
+---
+ 
+## Contents
+ 
+- [Quick links](#quick-links)
+- [The problem](#the-problem)
+- [What it does](#what-it-does)
+- [Architecture](#architecture)
+- [Key patterns and design decisions](#key-patterns-and-design-decisions)
+- [Screenshots](#screenshots)
+- [Technology stack](#technology-stack)
+- [Repository structure](#repository-structure)
+- [Lessons learned](#lessons-learned)
+- [Governance and safety boundaries](#governance-and-safety-boundaries)
+- [Documentation](#documentation)
+- [Author](#author)
+---
+ 
 ## Quick links
-
-* Demo video: https://youtu.be/Tzn6pMMoEAw
-* Architecture notes: ./architecture/
-* Demo walkthrough: ./demo/
-* Flow summaries: ./flows/
-* Prompt examples: ./prompts/
-* Screenshots and evidence: ./screenshots/
-
-
-## Problem
-
-Engagement managers and delivery leads at Microsoft partners or Power Platform consultancies often receive client documents, statements of work, requirements notes or service requests in a fragmented way.
-
-Common problems include:
-
-* Client documents arrive ad hoc.
-* Risks and missing information are easy to miss.
-* Duplicate engagement requests can be created.
-* Delivery teams inherit inconsistent handoffs.
-* Human-review requirements are not always surfaced early.
-* Audit trails are often spread across emails, documents, chat messages and manual notes.
-
-Engagement Hub addresses this by turning a submitted client document into one guided workflow from intake to delivery preparation.
-
+ 
+| Resource | Link |
+|---|---|
+| 🎬 Demo video | [YouTube walkthrough (3 min)](https://youtu.be/Tzn6pMMoEAw) |
+| 🌐 Full case study | [leilamarchant.co.uk/case-study-engagement-hub](https://leilamarchant.co.uk/case-study-engagement-hub/) |
+| 📄 Case study PDF | [docs/Engagement_Hub_Case_Study.pdf](docs/Engagement_Hub_Case_Study.pdf) |
+| 📋 ALM release checklist | [docs/Engagement_Hub_ALM_Release_Checklist.pdf](docs/Engagement_Hub_ALM_Release_Checklist.pdf) |
+| 👤 Portfolio | [leilamarchant.co.uk](https://leilamarchant.co.uk/) |
+| 💼 LinkedIn | [in/leilamarchant](https://www.linkedin.com/in/leilamarchant) |
+ 
 ---
-
-## What the solution does
-
-Engagement Hub supports the following process:
-
-1. A user asks the Engagement Hub Agent to analyse a submitted client document.
-2. A controlled Copilot Studio topic calls a Power Automate agent flow.
-3. The flow retrieves the Dataverse Submission record and attached document.
-4. Document text is extracted and analysed using an AI prompt.
-5. The structured analysis result is saved to Dataverse.
-6. The agent shows risk flags, confidence score, human-review status and a correlation ID.
-7. The user can create or return a duplicate-safe Engagement Request.
-8. The parent agent hands off to a Delivery Prep Child Agent.
-9. The Delivery Prep Child Agent generates and saves a discovery brief.
-10. The user can generate a Word discovery brief document.
-11. The document is saved to SharePoint and linked back to the Engagement Request.
-12. If human review is required, an autonomous Teams notification flow alerts the review channel.
-13. Key automation events are written to Automation Logs.
-
+ 
+## The problem
+ 
+Consultancy teams receive client briefs, contracts and statements of work in fragmented, unstructured ways. The result is slow triage, missed risks, inconsistent routing, duplicate records and incomplete delivery handoffs.
+ 
+Engagement Hub replaces that process with a governed, multi-agent intake and delivery-prep workflow — designed for the Microsoft partner and consultancy context.
+ 
 ---
-
+ 
+## What it does
+ 
+| Step | What happens |
+|---|---|
+| 1 | User submits a client document and asks the agent to analyse it |
+| 2 | Contract Analysis Agent extracts risks, gaps, confidence score and review recommendation |
+| 3 | Structured Analysis Result is saved to Dataverse |
+| 4 | User selects a service route; resolve flow maps it to the Service Offering record |
+| 5 | Agent shows a confirmation card and waits for explicit approval before creating any record |
+| 6 | Create flow checks for a duplicate; returns existing record or creates a new Engagement Request |
+| 7 | User initiates delivery handoff; Delivery Prep Child Agent generates the discovery brief |
+| 8 | Word handoff document is generated, saved to SharePoint and linked back to Dataverse |
+| 9 | If human review is required, an autonomous Teams notification fires — idempotently |
+| 10 | Every step is written to Automation Logs with correlation IDs, event names and success flags |
+ 
+---
+ 
 ## Architecture
-
-The solution uses a multi-agent architecture:
-
-### Engagement Hub Agent
-
-The parent Copilot Studio agent. It orchestrates the user journey and manages the controlled workflow from submission analysis through to engagement creation and delivery preparation.
-
-### Contract Analysis Agent
-
-A connected specialist agent for contract, statement of work, requirements and commercial document analysis. It extracts factual details, risks, missing information, confidence score and human-review recommendations.
-
-### Delivery Prep Child Agent
-
-A specialist child agent for delivery preparation. It receives an Engagement Request reference from the parent agent and calls the approved Generate Discovery Brief flow.
-
-### Power Automate flows
-
-The main flows are:
-
-* **EH AF - Analyse Contract Document v2**
-  Retrieves the submission document, extracts text, runs an AI prompt, parses structured JSON, creates an Analysis Result, updates the Submission and writes Automation Logs.
-
-* **EH AF - Create Engagement Request v2**
-  Creates or returns a duplicate-safe Engagement Request using Submission, Analysis Result and Service Offering context.
-
-* **EH AF - Generate Discovery Brief**
-  Resolves an Engagement Request, retrieves related Dataverse context, generates a structured discovery brief and updates the Engagement Request.
-
-* **EH AF - Generate Discovery Brief Document**
-  Uses a Dataverse-grounded prompt to generate Word document content, populates a Word template, saves the document to SharePoint, creates a sharing link, updates Dataverse and writes an Automation Log.
-
-* **EH - Notify Human Review Channel**
-  A standalone Dataverse-triggered cloud flow that posts a Teams adaptive card when an Analysis Result requires human review. It uses Automation Log idempotency to avoid duplicate alerts.
-
-### Dataverse
-
-Dataverse is used as the system of record.
-
-Core tables include:
-
-* Client Contacts
-* Submissions
-* Service Offerings
-* Qualification Criteria
-* Analysis Results
-* Engagement Requests
-* Automation Logs
-
-### Microsoft Teams
-
-Teams is used for autonomous human-review notification when an Analysis Result is flagged as requiring review.
-
-### SharePoint and Word
-
-Generated discovery brief documents are saved to SharePoint and linked back to the Engagement Request record in Dataverse.
-
+ 
+![Engagement Hub multi-agent architecture](screenshots/Engagement-Hub_Architecture.svg)
+ 
+<details>
+<summary>Text version of the architecture</summary>
+```
+┌─────────────────────────────────────────────────────────┐
+│              Engagement Hub Agent (Parent)               │
+│         Orchestration · Topics · Global Variables        │
+└──────────┬─────────────────────────┬────────────────────┘
+           │                         │
+           ▼                         ▼
+┌──────────────────────┐  ┌──────────────────────────────┐
+│  Contract Analysis   │  │   Delivery Prep Child Agent  │
+│       Agent          │  │   Discovery Brief · Word Doc │
+│  (Connected Agent)   │  │      (Child Agent)           │
+└──────────┬───────────┘  └──────────────┬───────────────┘
+           │                             │
+           ▼                             ▼
+┌─────────────────────────────────────────────────────────┐
+│                  Power Automate Flows                    │
+│  Analyse · Resolve · Create · Generate · Notify · Log   │
+└──────────────────────────┬──────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│                      Dataverse                          │
+│  Submissions · Analysis Results · Engagement Requests   │
+│  Service Offerings · Client Contacts · Automation Logs  │
+└─────────────────────────────────────────────────────────┘
+```
+ 
+</details>
+**Scale:** 1 parent agent + 2 specialist/child agents · 7 core Dataverse tables · 8+ Power Automate flows
+ 
 ---
-
+ 
+## Key patterns and design decisions
+ 
+### Pattern selection
+ 
+The build uses a deliberate mix of patterns rather than agents everywhere:
+ 
+| Pattern | Used when | In this build |
+|---|---|---|
+| Connected agent | Strong, self-contained domain boundary | Contract Analysis Agent |
+| Child agent | Focused sub-task within the same business process | Delivery Prep Child Agent |
+| Controlled topic | Behaviour must be deterministic — no generative improvisation | Engagement Request Confirmation |
+| Agent flow | Records must be created, retrieved or updated reliably | Create / Resolve / Analyse flows |
+| Backend cloud flow | Automation should be event-driven, no user present | Teams notification flows |
+ 
+### Governance built in — not bolted on
+ 
+- **Duplicate-safe records** — the create flow checks for an existing active Engagement Request before writing; duplicates are returned as successful governed outcomes, not errors
+- **No GUIDs in the UX** — users work with friendly references (`SUB-0002`, `CA-0014`, `ENG-0020`); flows resolve to row IDs behind the scenes
+- **Human confirmation gate** — no record is created until a person explicitly confirms; generative orchestration never makes that call
+- **Idempotent notifications** — Automation Logs are checked for a prior successful event before any Teams card is posted
+- **Controlled failure paths** — flows use a `varCanContinue` gate and a guaranteed `Respond to agent` action on every path, including failures; `Terminate` is never used in agent flows
+- **Automation Log event taxonomy** — structured event names (`contract_analysis_started`, `engagement_request_duplicate_detected`, `human_review_notification_sent`) make every run queryable and auditable
+### Human-in-the-loop by design
+ 
+Delivery preparation uses a deliberate conversational handoff rather than an autonomous trigger — the consultant chooses when downstream work begins. AI surfaces risks and recommendations; people remain accountable for routing, review and delivery decisions.
+ 
+---
+ 
+## Screenshots
+ 
+### The multi-agent journey
+ 
+| Engagement Hub command centre | Copilot Studio agent overview |
+|---|---|
+| ![Engagement Hub command centre](screenshots/modelapp-command-centre.png) | ![Copilot Studio agent overview](screenshots/copilot-studio-agent-overview.png) |
+| Parent agent tools | Agent in Microsoft Teams |
+| ![Parent agent tools](screenshots/copilot-studio-agent-tools.png) | ![Proposed engagement request in Teams](screenshots/teams-proposed-engagement-request.png) |
+ 
+### The Engagement Request record
+ 
+| Engagement overview | AI review & analysis |
+|---|---|
+| ![Engagement Request overview](screenshots/modelapp-engagement-request-overview.png) | ![AI review and analysis](screenshots/modelapp-engagement-request-ai-review.png) |
+| Delivery operations | Delivery readiness |
+| ![Delivery operations](screenshots/modelapp-engagement-request-delivery-ops.png) | ![Delivery readiness](screenshots/modelapp-engagement-request-delivery-readiness.png) |
+ 
+### Governance & evidence
+ 
+| Duplicate-prevention automation log | Generated discovery brief (Word) |
+|---|---|
+| ![Duplicate prevention log](screenshots/modelapp-duplicate-prevention-log.png) | ![Generated Word discovery brief](screenshots/word-discovery-brief-generated.png) |
+ 
+> Full evidence set — Copilot Studio agents and topics, AI prompts, safe-failure handling and SharePoint storage — in [`/screenshots`](screenshots/).
+ 
+---
+ 
 ## Technology stack
-
-* Microsoft Copilot Studio
-* Microsoft Power Automate
-* Microsoft Dataverse
-* Model-driven Power Apps
-* Microsoft Teams
-* SharePoint
-* Microsoft Word templates
-* AI Builder / document text extraction
-* AI prompts
-* Adaptive Cards
-* Power Fx
-* Structured JSON
-* Automation Logs and correlation IDs
-
+ 
+`Copilot Studio` `Power Automate` `Dataverse` `Model-Driven Apps` `Microsoft Teams` `Adaptive Cards` `SharePoint` `Word Templates` `AI Prompts` `Structured JSON` `Power Fx` `Environment Variables` `Connection References`
+ 
 ---
-
-## Agent Academy concepts demonstrated
-
-This project demonstrates several Agent Academy concepts and patterns:
-
-* Multi-agent orchestration
-* Parent agent and specialist child agent pattern
-* Connected specialist agent pattern
-* Controlled topics for predictable workflow steps
-* Agent tools backed by Power Automate flows
-* Dataverse-grounded AI outputs
-* Structured JSON prompt output
-* Human-in-the-loop governance
-* Autonomous event-driven notification
-* Duplicate-safe record creation
-* Safe failure handling
-* Audit logging and traceability
-* Adaptive Card user experience
-
----
-
-## Governance and safety boundaries
-
-Engagement Hub is designed to support human reviewers, not replace them.
-
-The agent does **not**:
-
-* Provide legal advice
-* Approve contract terms
-* Approve pricing
-* Approve commercial decisions
-* Make final go/no-go decisions
-* Replace human review where risk is flagged
-
-The agent does:
-
-* Surface risks and missing information
-* Store structured analysis evidence
-* Flag when human review is required
-* Provide confidence scores and governance notes
-* Maintain correlation IDs and Automation Logs
-* Help delivery teams prepare consistent handoff material
-
----
-
-## Demo flow
-
-The demo shows the following journey:
-
-1. Analyse submission `SUB-0002`.
-2. Store the Analysis Result in Dataverse.
-3. Show risk flags, confidence score and human-review status.
-4. Create or return a duplicate-safe Engagement Request.
-5. Prepare delivery handoff through the Delivery Prep Child Agent.
-6. Generate and save a Discovery Brief.
-7. Generate a Word discovery brief document.
-8. Save the document to SharePoint.
-9. Link the document back to Dataverse.
-10. Post a Teams notification when human review is required.
-11. Show Automation Logs and safe failure handling.
-
-Demo video: https://youtu.be/Tzn6pMMoEAw
-
----
-
-## Repository contents
-
-This repository is a documentation and evidence repository for a Microsoft Power Platform / Copilot Studio solution.
-
-Current repository structure:
-
-architecture/
-demo/
-flows/
-prompts/
-screenshots/
-
-The repository contains architecture notes, implementation summaries, sanitised prompts, flow descriptions, screenshots and demo materials rather than a traditional code-first application.
-
----
-
-## Setup summary
-
-This project depends on Microsoft Power Platform services and cannot be run as a standalone local application.
-
-To recreate a similar solution:
-
+ 
+## Repository structure
+ 
+```
+engagement-hub-agent/
+├── architecture/       # Architecture notes, component descriptions and diagram
+├── demo/               # Demo walkthrough and scenario guide
+├── docs/               # Case study and ALM release checklist (PDF)
+├── flows/              # Power Automate flow summaries and design notes
+├── prompts/            # Sanitised AI prompt examples
+├── screenshots/        # Evidence screenshots and workflow captures
+└── README.md
+```
+ 
+> This is a **documentation and evidence repository** for a Microsoft Power Platform / Copilot Studio solution. It contains architecture notes, flow descriptions, sanitised prompts and demo materials rather than deployable application code, as Copilot Studio and Power Automate solutions are platform-managed artefacts.
+ 
+### Recreating a similar solution
+ 
+<details>
+<summary>High-level setup steps</summary>
 1. Create a Power Platform environment with Dataverse enabled.
-2. Create the Dataverse tables:
-
-   * Client Contacts
-   * Submissions
-   * Service Offerings
-   * Qualification Criteria
-   * Analysis Results
-   * Engagement Requests
-   * Automation Logs
+2. Create the 7 Dataverse tables (Client Contacts, Submissions, Service Offerings, Qualification Criteria, Analysis Results, Engagement Requests, Automation Logs).
 3. Build the model-driven app for operational review.
 4. Create the Copilot Studio parent agent and specialist agents.
-5. Add controlled topics for:
-
-   * Submission analysis
-   * Engagement Request confirmation
-   * Delivery handoff
-   * Legal/commercial guardrails
-6. Create the Power Automate flows listed above.
-7. Connect the flows to the relevant agents as tools.
-8. Configure SharePoint storage for generated Word documents.
-9. Configure a Word template with content controls.
-10. Configure Teams channel notification for human review.
-11. Add sample data and test the full happy path.
-12. Test duplicate detection and safe failure paths.
-
+5. Add controlled topics for submission analysis, engagement confirmation, delivery handoff and legal/commercial guardrails.
+6. Create the Power Automate flows and connect them to the agents as tools.
+7. Configure SharePoint storage and a Word template with content controls.
+8. Configure Teams channel notification for human review.
+9. Add sample data and test the happy path, duplicate detection and safe failure paths.
+</details>
 ---
-
-## Key implementation highlights
-
-* Dataverse is used as the system of record.
-* Friendly business references such as `SUB-0002` and `ENG-0020` are used in the user experience.
-* Flows resolve friendly references to Dataverse row IDs behind the scenes.
-* Engagement Request creation is duplicate-safe.
-* Analysis Results include risk flags, confidence score and human-review status.
-* Delivery preparation is handled by a specialist child agent.
-* Generated Word documents are saved to SharePoint and linked to Dataverse.
-* Human-review notification is autonomous and idempotent.
-* Automation Logs capture success, failure, duplicate prevention and correlation IDs.
-* Adaptive Cards provide clear success, duplicate and failure states.
-
----
-
+ 
 ## Lessons learned
-
-Important lessons from the build:
-
-* Agent outputs need clear naming when multiple tools are used in one topic.
-* Parent-to-child agent handoff requires explicit input and output mapping.
-* A message in chat is not the same as a mapped child-agent input.
-* Power Automate action schemas can become stale and may need actions to be recreated.
-* Dataverse lookups and row IDs require careful handling.
-* Controlled topics are more reliable than free-text generative orchestration for demo-critical business processes.
-* Long generated content is better stored in Dataverse or Word documents than displayed directly in chat cards.
-* Human review should be built into the workflow, not added as an afterthought.
-* Good enterprise agent design requires grounding, auditability, safe boundaries and deterministic writes.
-
+ 
+Five things that changed how I think about building production-grade agents:
+ 
+1. **Pattern selection matters more than agent count.** The question is never "how many agents?" — it's "where does generative reasoning add value, and where does it add risk?"
+2. **A failed lookup is a business outcome, not a technical exception.** Agent flows should never use `Terminate`; every path needs a controlled, logged response.
+3. **Idempotency only works if the check is exact.** An event-name duplicate check works only when the event name, success flag and related row ID are all matched together — not any single field.
+4. **Never delete and recreate a tool already wired into a child agent.** Copilot Studio caches action references; the correct fix is a clean remove-and-re-add.
+5. **The final step of a demo should not be its weakest.** The Discovery Brief result card was rebuilt specifically because the proof point of the whole multi-agent story should look like a business-system result, not a chatbot confirmation.
 ---
-
-## Security note
-
-This repository does not include:
-
-* API keys
-* Secrets
-* Connection credentials
-* Tenant-specific configuration
-* Real client data
-* Confidential or proprietary information
-
-All screenshots, prompts and documentation should be treated as sanitised demo material.
-
+ 
+## Governance and safety boundaries
+ 
+The agent **does not**: provide legal advice · approve contract terms · approve pricing or commercial decisions · make final go/no-go decisions · replace human review where risk is flagged.
+ 
+The agent **does**: surface risks and missing information · store structured analysis evidence · flag when human review is required · provide confidence scores · maintain correlation IDs and Automation Logs · help delivery teams prepare consistent handoff material.
+ 
+### Security
+ 
+This repository does not include API keys, secrets, connection credentials, tenant-specific configuration, real client data or confidential information. All screenshots, prompts and documentation are sanitised demo material.
+ 
 ---
-
+ 
+## Documentation
+ 
+Architecture detail, demo screenshots, workflow evidence, governance analysis and downloadable PDFs:
+ 
+**[📖 Full case study → leilamarchant.co.uk/case-study-engagement-hub](https://leilamarchant.co.uk/case-study-engagement-hub/)**
+ 
+- [Engagement Hub case study (PDF)](docs/Engagement_Hub_Case_Study.pdf)
+- [ALM release checklist (PDF)](docs/Engagement_Hub_ALM_Release_Checklist.pdf)
+---
+ 
 ## Author
-
-Created by Leila Marchant as a Microsoft Agent Academy Hackathon Operative track submission.
-
-Portfolio website: https://leilamarchant.co.uk/
-LinkedIn: https://www.linkedin.com/in/leilamarchant  
-Demo video: https://youtu.be/Tzn6pMMoEAw
+ 
+**Leila Marchant** — Power Platform & Copilot Studio Developer  
+Winchester, UK · Remote / Hybrid
+ 
+[🌐 Portfolio](https://leilamarchant.co.uk/) · [💼 LinkedIn](https://www.linkedin.com/in/leilamarchant) · [🎬 Demo video](https://youtu.be/Tzn6pMMoEAw)
+ 
+<sub>Built for the Microsoft Agent Academy Live Hackathon — Operative Track · 2nd Place</sub>
