@@ -15,7 +15,7 @@ A multi-agent Microsoft **Copilot Studio** and **Power Platform** system that tu
  
 ---
  
-> **👋 Reviewing this repo?** The fastest way to understand the project is the **[3-minute demo video](https://youtu.be/Tzn6pMMoEAw)**, then the **[full case study](https://leilamarchant.co.uk/case-study-engagement-hub/)** for architecture detail and screenshots.
+> **👋 Reviewing this repo?** The fastest way to understand the project is the **[4-minute demo video](https://youtu.be/Tzn6pMMoEAw)**, then the **[full case study](https://leilamarchant.co.uk/case-study-engagement-hub/)** for architecture detail and screenshots.
  
 ---
  
@@ -60,16 +60,16 @@ Engagement Hub replaces that process with a governed, multi-agent intake and del
  
 | Step | What happens |
 |---|---|
-| 1 | User submits a client document and asks the agent to analyse it |
-| 2 | Contract Analysis Agent extracts risks, gaps, confidence score and review recommendation |
-| 3 | Structured Analysis Result is saved to Dataverse |
-| 4 | User selects a service route; resolve flow maps it to the Service Offering record |
-| 5 | Agent shows a confirmation card and waits for explicit approval before creating any record |
-| 6 | Create flow checks for a duplicate; returns existing record or creates a new Engagement Request |
-| 7 | User initiates delivery handoff; Delivery Prep Child Agent generates the discovery brief |
-| 8 | Word handoff document is generated, saved to SharePoint and linked back to Dataverse |
-| 9 | If human review is required, an autonomous Teams notification fires — idempotently |
-| 10 | Every step is written to Automation Logs with correlation IDs, event names and success flags |
+| 1 | A client submission with an attached document is captured in Dataverse, and the user asks the agent to analyse it |
+| 2 | The contract-analysis flow retrieves the document, extracts text, runs an AI prompt, and returns risk flags, missing information, a confidence score and a human-review recommendation |
+| 3 | A structured Analysis Result is saved to Dataverse and the Submission is updated with high-level review information |
+| 4 | The user selects a service route; the controlled workflow resolves it to the appropriate Service Offering record |
+| 5 | The agent shows a confirmation card and waits for explicit approval before creating an Engagement Request |
+| 6 | The create flow checks for an existing active Engagement Request in the same business context; it returns the existing record or creates a new one |
+| 7 | The user initiates delivery handoff; the Delivery Prep Child Agent generates and saves a structured Discovery Brief |
+| 8 | The user can optionally generate a Word handoff document, which is populated from Dataverse-grounded content, saved to SharePoint and linked back to the Engagement Request|
+| 9 | When human review is required, an event-driven flow checks for a prior successful notification before posting a Teams adaptive card |
+| 10 | Key automated actions are written to Automation Logs with correlation IDs, event names, success flags and related-record references |
  
 ---
  
@@ -129,10 +129,11 @@ The build uses a deliberate mix of patterns rather than agents everywhere:
  
 - **Duplicate-safe records** — the create flow checks for an existing active Engagement Request before writing; duplicates are returned as successful governed outcomes, not errors
 - **No GUIDs in the UX** — users work with friendly references (`SUB-0002`, `CA-0014`, `ENG-0020`); flows resolve to row IDs behind the scenes
-- **Human confirmation gate** — no record is created until a person explicitly confirms; generative orchestration never makes that call
-- **Idempotent notifications** — Automation Logs are checked for a prior successful event before any Teams card is posted
-- **Controlled failure paths** — flows use a `varCanContinue` gate and a guaranteed `Respond to agent` action on every path, including failures; `Terminate` is never used in agent flows
+- **Human confirmation gate** — no Engagement Request is created until a person explicitly confirms; generative orchestration never makes that call
+- **Idempotent notifications** — Automation Logs are checked for a prior successful event before a Teams card is posted
+- **Controlled failure paths** — expected business validation failures return controlled responses rather than being treated as technical exceptions; the delivery-prep flow uses a `varCanContinue`gate and a final response action on every path
 - **Automation Log event taxonomy** — structured event names (`contract_analysis_started`, `engagement_request_duplicate_detected`, `human_review_notification_sent`) make every run queryable and auditable
+
 ### Human-in-the-loop by design
  
 Delivery preparation uses a deliberate conversational handoff rather than an autonomous trigger — the consultant chooses when downstream work begins. AI surfaces risks and recommendations; people remain accountable for routing, review and delivery decisions.
@@ -211,7 +212,7 @@ Five things that changed how I think about building production-grade agents:
 1. **Pattern selection matters more than agent count.** The question is never "how many agents?" — it's "where does generative reasoning add value, and where does it add risk?"
 2. **A failed lookup is a business outcome, not a technical exception.** Agent flows should never use `Terminate`; every path needs a controlled, logged response.
 3. **Idempotency only works if the check is exact.** An event-name duplicate check works only when the event name, success flag and related row ID are all matched together — not any single field.
-4. **Never delete and recreate a tool already wired into a child agent.** Copilot Studio caches action references; the correct fix is a clean remove-and-re-add.
+4. **Copilot Studio tool references need careful lifecycle management.** Avoid exposing the same tool in both a parent and child agent unless that is intentional. If stale references occur, first remove duplicate exposure and dependent mappings; then remove and re-add the affected tool or agent node cleanly, testing each layer before reconnecting the full workflow.
 5. **The final step of a demo should not be its weakest.** The Discovery Brief result card was rebuilt specifically because the proof point of the whole multi-agent story should look like a business-system result, not a chatbot confirmation.
 ---
  
