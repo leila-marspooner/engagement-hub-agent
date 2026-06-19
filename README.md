@@ -80,34 +80,54 @@ Engagement Hub replaces that process with a governed, multi-agent intake and del
 <details>
 <summary>Text version of the architecture</summary>
 ```
-┌─────────────────────────────────────────────────────────┐
-│              Engagement Hub Agent (Parent)               │
-│         Orchestration · Topics · Global Variables        │
-└──────────┬─────────────────────────┬────────────────────┘
-           │                         │
-           ▼                         ▼
-┌──────────────────────┐  ┌──────────────────────────────┐
-│  Contract Analysis   │  │   Delivery Prep Child Agent  │
-│       Agent          │  │   Discovery Brief · Word Doc │
-│  (Connected Agent)   │  │      (Child Agent)           │
-└──────────┬───────────┘  └──────────────┬───────────────┘
-           │                             │
-           ▼                             ▼
-┌─────────────────────────────────────────────────────────┐
-│                  Power Automate Flows                    │
-│  Analyse · Resolve · Create · Generate · Notify · Log   │
-└──────────────────────────┬──────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────┐
-│                      Dataverse                          │
-│  Submissions · Analysis Results · Engagement Requests   │
-│  Service Offerings · Client Contacts · Automation Logs  │
-└─────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                         Engagement Hub Agent                                 │
+│                         Parent orchestration agent                           │
+│              Topics · Global variables · Controlled user journeys            │
+└───────────────┬────────────────────────┬────────────────────────┬───────────┘
+                │                        │                        │
+                ▼                        ▼                        ▼
+┌──────────────────────────┐  ┌──────────────────────────┐  ┌──────────────────────────┐
+│  Contract Analysis Agent  │  │ Submission Intake Agent   │  │   Delivery Prep Agent     │
+│  Connected specialist     │  │ Child agent               │  │   Child agent             │
+│  Document analysis        │  │ Intake preparation        │  │   Discovery brief         │
+│  Risks · obligations      │  │ Missing information       │  │   Word handoff document   │
+│  Human review flags       │  │ Submission summary        │  │   Delivery preparation    │
+└──────────────┬───────────┘  └──────────────┬───────────┘  └──────────────┬───────────┘
+               │                             │                             │
+               ▼                             ▼                             ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                           Power Automate Flows                               │
+│                                                                              │
+│  Resolve Submission · Analyse Contract Document · Resolve Service Offering   │
+│  Create / Return Engagement Request · Generate Discovery Brief               │
+│  Generate Word Handoff Document · Notify Human Review · Write Logs           │
+│                                                                              │
+│  Agent-triggered flows + standalone backend notification flow                 │
+└──────────────────────────────────────┬───────────────────────────────────────┘
+                                       │
+                                       ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                Dataverse                                     │
+│                                                                              │
+│  Submissions · Analysis Results · Engagement Requests · Service Offerings     │
+│  Client Contacts · Qualification Criteria · Automation Logs                   │
+└──────────────────────────────────────┬───────────────────────────────────────┘
+                                       │
+                                       ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                         Microsoft 365 Outputs                                │
+│                                                                              │
+│  Model-driven app · Teams adaptive cards · SharePoint · Word template output  │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Scale:** 4 Copilot Studio agents total: 1 parent orchestration agent, 1 connected specialist agent and 2 child agents · 7 core Dataverse tables · 8+ Power Automate flows
+
 ```
  
 </details>
-**Scale:** 1 parent agent + 2 specialist/child agents · 7 core Dataverse tables · 8+ Power Automate flows
+**Scale:** 1 parent orchestration agent · 1 connected specialist agent · 2 child agents · 7 core Dataverse tables · 8+ Power Automate flows
  
 ---
  
