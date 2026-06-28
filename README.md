@@ -75,7 +75,7 @@ Engagement Hub replaces that process with a governed, multi-agent intake and del
  
 ## Architecture
  
-![Engagement Hub multi-agent architecture](screenshots/architecture-hero.png)
+![Engagement Hub multi-agent architecture](screenshots/Engagement-Hub_Architecture.svg)
  
 <details>
 <summary>Text version of the architecture</summary>
