@@ -15,7 +15,7 @@ A multi-agent Microsoft **Copilot Studio** and **Power Platform** system that tu
  
 ---
  
-> **👋 Reviewing this repo?** The fastest way to understand the project is the **[4-minute demo video](https://youtu.be/Tzn6pMMoEAw)**, then the **[full case study](https://leilamarchant.co.uk/case-study-engagement-hub/)** for architecture detail and screenshots.
+> **👋 Reviewing this repo?** The fastest way to understand the project is the **[demo video, about 4 minutes](https://youtu.be/Tzn6pMMoEAw)**, then the **[full case study](https://leilamarchant.co.uk/case-study-engagement-hub/)** for architecture detail and screenshots.
  
 ---
  
@@ -39,7 +39,7 @@ A multi-agent Microsoft **Copilot Studio** and **Power Platform** system that tu
  
 | Resource | Link |
 |---|---|
-| 🎬 Demo video | [YouTube walkthrough (3 min)](https://youtu.be/Tzn6pMMoEAw) |
+| 🎬 Demo video | [YouTube walkthrough (about 4 minutes)](https://youtu.be/Tzn6pMMoEAw) |
 | 🌐 Full case study | [leilamarchant.co.uk/case-study-engagement-hub](https://leilamarchant.co.uk/case-study-engagement-hub/) |
 | 📄 Case study PDF | [docs/Engagement_Hub_Case_Study.pdf](docs/Engagement_Hub_Case_Study.pdf) |
 | 📋 ALM release checklist | [docs/Engagement_Hub_ALM_Release_Checklist.pdf](docs/Engagement_Hub_ALM_Release_Checklist.pdf) |
@@ -79,7 +79,8 @@ Engagement Hub replaces that process with a governed, multi-agent intake and del
  
 <details>
 <summary>Text version of the architecture</summary>
-```
+
+```text
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │                         Engagement Hub Agent                                 │
 │                         Parent orchestration agent                           │
@@ -88,7 +89,7 @@ Engagement Hub replaces that process with a governed, multi-agent intake and del
                 │                        │                        │
                 ▼                        ▼                        ▼
 ┌──────────────────────────┐  ┌──────────────────────────┐  ┌──────────────────────────┐
-│  Contract Analysis Agent  │  │ Submission Intake Agent   │  │   Delivery Prep Agent     │
+│  Contract Analysis Agent  │  │ Submission Intake Child   │  │   Delivery Prep Child     │
 │  Connected specialist     │  │ Child agent               │  │   Child agent             │
 │  Document analysis        │  │ Intake preparation        │  │   Discovery brief         │
 │  Risks · obligations      │  │ Missing information       │  │   Word handoff document   │
@@ -121,13 +122,12 @@ Engagement Hub replaces that process with a governed, multi-agent intake and del
 │  Model-driven app · Teams adaptive cards · SharePoint · Word template output  │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
-
-**Scale:** 4 Copilot Studio agents total: 1 parent orchestration agent, 1 connected specialist agent and 2 child agents · 7 core Dataverse tables · 8+ Power Automate flows
-
-```
  
 </details>
-**Scale:** 1 parent orchestration agent · 1 connected specialist agent · 2 child agents · 7 core Dataverse tables · 8+ Power Automate flows
+
+**Scale:** 1 parent orchestration agent · 1 connected specialist agent · 2 child agents · 7 core Dataverse tables · 8+ Power Automate flows in the wider solution, with selected core flows documented in this repo.
+
+The demo video focuses on the analysis-to-delivery path: document analysis, Engagement Request creation, delivery handoff, Word document generation, Teams notification and audit logging. It does not show every wider architecture capability or every agent path.
  
 ---
  
@@ -140,8 +140,8 @@ The build uses a deliberate mix of patterns rather than agents everywhere:
 | Pattern | Used when | In this build |
 |---|---|---|
 | Connected agent | Strong, self-contained domain boundary | Contract Analysis Agent |
-| Child agent | Focused sub-task within the same business process | Delivery Prep Child Agent |
-| Controlled topic | Behaviour must be deterministic — no generative improvisation | Engagement Request Confirmation |
+| Child agent | Focused sub-task within the same business process | Submission Intake Child Agent; Delivery Prep Child Agent |
+| Controlled topic | Behaviour must be deterministic — no generative improvisation | Engagement Request Confirmation, which is a controlled topic rather than a child agent |
 | Agent flow | Records must be created, retrieved or updated reliably | Create / Resolve / Analyse flows |
 | Backend cloud flow | Automation should be event-driven, no user present | Teams notification flows |
  
@@ -216,7 +216,7 @@ engagement-hub-agent/
 1. Create a Power Platform environment with Dataverse enabled.
 2. Create the 7 Dataverse tables (Client Contacts, Submissions, Service Offerings, Qualification Criteria, Analysis Results, Engagement Requests, Automation Logs).
 3. Build the model-driven app for operational review.
-4. Create the Copilot Studio parent agent and specialist agents.
+4. Create the Copilot Studio parent agent, connected specialist agent and child agents.
 5. Add controlled topics for submission analysis, engagement confirmation, delivery handoff and legal/commercial guardrails.
 6. Create the Power Automate flows and connect them to the agents as tools.
 7. Configure SharePoint storage and a Word template with content controls.
@@ -227,7 +227,7 @@ engagement-hub-agent/
  
 ## Lessons learned
  
-Five things that changed how I think about building production-grade agents:
+Five things that changed how I think about building governed business agents:
  
 1. **Pattern selection matters more than agent count.** The question is never "how many agents?" — it's "where does generative reasoning add value, and where does it add risk?"
 2. **A failed lookup is a business outcome, not a technical exception.** Agent flows should never use `Terminate`; every path needs a controlled, logged response.

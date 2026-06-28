@@ -1,0 +1,6 @@
+source-notes/
+*.docx
+*.pages
+*.key
+*.numbers
+.DS_Store

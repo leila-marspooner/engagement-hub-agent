@@ -1,6 +1,8 @@
 # Power Automate Flows
 
-This folder documents the main Power Automate flows used by Engagement Hub. This is a Power Platform / Copilot Studio project, so the repository contains sanitised implementation summaries rather than raw exported environment files.
+This folder documents selected core Power Automate flows used by Engagement Hub. The wider solution uses 8+ flows; this repository focuses on the flows that best explain the public portfolio architecture and demo path.
+
+This is a Power Platform / Copilot Studio project, so the repository contains sanitised implementation summaries rather than raw exported environment files.
 
 ## EH AF - Analyse Contract Document v2
 
